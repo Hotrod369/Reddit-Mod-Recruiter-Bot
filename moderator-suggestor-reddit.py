@@ -13,22 +13,49 @@ import datetime as dt
 import time
 
 # Create a Reddit instance using PRAW
-reddit = praw.Reddit(
-    client_id="xxxxxxxxxxx",
-    client_secret="xxxxxxxxxxx",
-    password="xxxxxxxxxxx",
-    user_agent="xxxxxxxxxxx",
-    username="xxxxxxxxxxxxx",
-    timeout=30,)
-    
+reddit = praw.Reddit('bot1')
+
+# Define Subreddits   
 subreddit_names = ['TheBidenshitshow', 'TheDonaldTrump2024', 'TheLEFTISTshitshow', 'Trumped']
+
+subreddits = ['TheBidenshitshow', 'TheDonaldTrump2024', 'TheLEFTISTshitshow', 'Trumped']
+
 # Get created_utc for each subreddit
 created_utc = []
-for subreddit_name in subreddit_names:
+for subreddit_name in subreddits:
     subreddit = reddit.subreddit(subreddit_name)
     utc = subreddit.created_utc
     created_utc.append(utc)
 
+authors = []
+karmas = []
+
+for sub_name in subreddits:
+    subreddit = reddit.subreddit(sub_name)
+    for submission in subreddit.top(limit=40):
+        submission.comment_sort = 'top'
+        submission.comment_limit = 10
+        for comment in submission.comments:
+            if isinstance(comment, praw.models.MoreComments):
+                continue
+            if comment.author is not None:
+                authors.append(comment.author.name)
+            if comment.score is not None:
+                karmas.append(comment.score)
+
+unique_authors = set(authors)
+total_karma = sum(karmas)
+
+print("Total comment karma of unique authors: ", total_karma)
+
+
+print("Total comment karma of unique authors: ", total_karma)
+print(submission.title)
+print(submission.score)
+print(submission.id)
+print(submission.url)
+print(submission.created_utc)
+    
 # Define function to scrape data from a subreddit
 def scrape_subreddit(subreddit_name, start_time, end_time):
     subreddit = reddit.subreddit(subreddit_name)
@@ -40,8 +67,8 @@ def scrape_subreddit(subreddit_name, start_time, end_time):
     return posts_df
 
 # initialize an empty list to store the scraped data
-posts = []
 
+posts = []
 redditors = []
 karma = 0
 
@@ -58,6 +85,12 @@ for redditor in redditors:
         print(f"{redditor.name}: failed to get karma")
 
 print("Total comment karma of unique authors: ", karma)
+
+subreddit_names = ['TheBidenshitshow', 'TheDonaldTrump2024', 'TheLEFTISTshitshow', 'Trumped']
+for subreddit_name in subreddit_names:
+    subreddit = reddit.subreddit(subreddit_name)
+    hot_posts = subreddit.hot(limit=10)
+    # rest of the code
 
 # loop through each subreddit
 for subreddit_name in subreddit_names:
@@ -230,7 +263,7 @@ for subreddit_name in subreddit_names:
     # Scrape the data for the subreddit and append it to the dataframe
     df = scrape_subreddit(subreddit_name, start_time, end_time)
     df['subreddit'] = subreddit_name
-    data.append(df, ignore_index=True)
+    data = pd.concat([data, df], ignore_index=True)
     time.sleep(1)
     
     # Get the number of posts and comments in the time period
@@ -356,7 +389,7 @@ actions = ['approve', 'remove', 'spam', 'banuser', 'unbanuser']
 # Find potential moderators who are active in the given subreddits
 potential_moderators = set()
 for subreddit_name in subreddits:
-    subreddit = reddit.subreddit(subreddit_name.replace('_', ' '))
+    subreddit = reddit.subreddit(subreddit_name)
     for top_contributor in subreddit.top(time_filter='month', limit=10):
         if str(top_contributor.author) not in moderator_usernames and str(top_contributor.author) not in potential_moderators:
             try:
@@ -475,3 +508,4 @@ for moderator in best_moderators:
 # Export the dataframes to a single CSV file
 df.to_csv('reddit_data.csv')
 df_moderation_data.to_csv('moderation_data.csv')
+
