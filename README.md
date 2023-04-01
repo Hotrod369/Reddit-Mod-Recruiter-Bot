@@ -17,7 +17,7 @@ The bot requires Python 3.x and the following Python libraries:
 ## Installation
 Clone the repository to your local machine.
 Install the required libraries using pip.
-pip3 install -r requirements.txt
+```pip3 install -r requirements.txt```
 
 ## Usage
 To use the bot, simply run the mod_recruiter_bot.py file. The bot will then scrape the specified subreddit and output a list of potential moderator candidates.
